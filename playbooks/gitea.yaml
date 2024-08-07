@@ -1,0 +1,59 @@
+---
+- name: Gitea
+  hosts: all
+
+  # Gather machine informations
+  gather_facts: no
+
+  # Enable root previlegies
+  become: no
+
+  vars:
+    app_name: Gitea
+    app_image: docker.io/gitea/gitea:1.22.0-rootless
+    app_internal_port: 3000
+    app_external_port: 8080
+    timezone: Europe/Paris
+
+  # Run suitable scripts
+  tasks:
+
+    - name: Create {{ app_name }} Data Directory
+      file:
+        path: "{{data_path}}/{{app_name}}"
+        state: directory
+        mode: '0755'
+
+    - name: Create {{ app_name }} Config Directory
+      file:
+        path: "{{data_path}}/{{app_name}}/config"
+        state: directory
+        mode: '0777'
+
+    - name: Pull {{ app_name }} Image
+      containers.podman.podman_image:
+        name: "{{ app_image }}"
+        state: present
+
+    - name: Create {{app_name}} Container
+      containers.podman.podman_container:
+        name: "{{ app_name }}"
+        image: "{{ app_image }}"
+        state: started
+        recreate: yes
+        ports:
+          - "{{app_external_port}}:{{app_internal_port}}"
+          - "2221:22"
+        expose:
+          - "{{ app_external_port }}"
+        volumes:
+          - "{{data_path}}/{{app_name}}:/data"
+          - "/etc/timezone:/etc/timezone"
+          - "/etc/localtime:/etc/localtime"
+        #generate_systemd:
+        #  path: "~/.config/systemd/user/"
+        #  restart_policy: always
+        #  time: 120
+        #  names: true
+        #  container_prefix: container
+

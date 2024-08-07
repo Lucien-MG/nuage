@@ -1,0 +1,15 @@
+---
+- name: Ping
+  hosts: all
+
+  # Gather machine informations
+  gather_facts: no
+
+  # Enable root previlegies
+  become: no
+
+  # Run suitable scripts
+  tasks:
+
+    - name: Ping
+      ansible.builtin.ping:

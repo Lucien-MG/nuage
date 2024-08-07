@@ -1,0 +1,25 @@
+---
+- name: Setup server
+  hosts: all
+
+  # Gather machine informations
+  gather_facts: no
+
+  # Enable root previlegies
+  become: yes
+
+  # Run suitable scripts
+  tasks:
+
+    - name: Install Container Runtime
+      ansible.builtin.package:
+        name: crun
+        state: present
+
+    - name: Install Container Manger
+      ansible.builtin.package:
+        name: 
+          - podman
+          - slirp4netns # Allow user-mode networking for unprivileged network namespaces
+        state: present
+
