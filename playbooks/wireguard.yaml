@@ -1,0 +1,17 @@
+---
+- name: Wireguard 
+  hosts: all
+
+  # Gather machine informations
+  gather_facts: no
+
+  # Enable root previlegies
+  become: no
+
+  # Run suitable scripts
+  tasks:
+
+    - name: Test
+      debug:
+        msg: "Test"
+

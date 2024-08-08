@@ -1,3 +1,4 @@
 ---
 data_path: '/media/data'
+server_user: 'server'
 
