@@ -1,5 +1,5 @@
 ---
-- name: Gitea
+- name: Jellyfin
   hosts: all
 
   # Gather machine informations
@@ -9,10 +9,10 @@
   become: no
 
   vars:
-    app_name: Gitea
-    app_image: docker.io/gitea/gitea:1.22.1-rootless
-    app_internal_port: 3000
-    app_external_port: 8080
+    app_name: Jellyfin
+    app_image: docker.io/jellyfin/jellyfin:10.9.8
+    app_internal_port: 8096
+    app_external_port: 8096
     timezone: Europe/Paris
 
   # Run suitable scripts
@@ -28,7 +28,19 @@
       file:
         path: "{{data_path}}/{{app_name}}/config"
         state: directory
-        mode: '0777'
+        mode: '0755'
+
+    - name: Create {{ app_name }} TvSeries Directory
+      file:
+        path: "{{data_path}}/{{app_name}}/shows"
+        state: directory
+        mode: '0755'
+
+    - name: Create {{ app_name }} Movies Directory
+      file:
+        path: "{{data_path}}/{{app_name}}/movies"
+        state: directory
+        mode: '0755'
 
     - name: Pull {{ app_name }} Image
       containers.podman.podman_image:
@@ -43,13 +55,16 @@
         recreate: yes
         ports:
           - "{{app_external_port}}:{{app_internal_port}}"
-          - "2221:22"
         expose:
           - "{{ app_external_port }}"
         volumes:
-          - "{{data_path}}/{{app_name}}:/data"
-          - "/etc/timezone:/etc/timezone"
-          - "/etc/localtime:/etc/localtime"
+          - "{{data_path}}/{{app_name}}/:/config"
+          - "{{data_path}}/{{app_name}}/shows:/data/shows"
+          - "{{data_path}}/{{app_name}}/movies:/data/movies"
+        env:
+          PUID: 1000
+          PGID: 1000
+          TZ: "Etc/UTC"
         #generate_systemd:
         #  path: "~/.config/systemd/user/"
         #  restart_policy: always
