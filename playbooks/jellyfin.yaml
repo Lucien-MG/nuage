@@ -10,7 +10,7 @@
 
   vars:
     app_name: Jellyfin
-    app_image: docker.io/jellyfin/jellyfin:10.9.8
+    app_image: docker.io/jellyfin/jellyfin:10.8.13
     app_internal_port: 8096
     app_external_port: 8096
     timezone: Europe/Paris
