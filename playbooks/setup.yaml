@@ -11,17 +11,16 @@
   # Run suitable scripts
   tasks:
 
-    - name: Install Container Runtime
-      ansible.builtin.package:
-        name: crun
-        state: present
-
     - name: Install Container Manager
       ansible.builtin.package:
         name: 
-          - podman
+          - crun # Container runtime
+          - podman # Container manager
           - slirp4netns # Allow user-mode networking for unprivileged network namespaces
-          - uidmap
+          - uidmap # Handle user namespace
+          - dbus-user-session
+          - fuse-overlayfs
+          - systemd-container
         state: present
 
     - name: Create Dedicated User
@@ -30,7 +29,10 @@
 
     - name: Set authorized key taken from file
       ansible.posix.authorized_key:
-        user: "{{server_user}}"
+        user: "{{ server_user }}"
         state: present
         key: "{{ lookup('file', '~/.ssh/id_ed25519.pub') }}"
 
+    # Avoid the user session to close
+    - name: Enable linger for {{ server_user }} user
+      ansible.builtin.command: "loginctl enable-linger {{ server_user }}"

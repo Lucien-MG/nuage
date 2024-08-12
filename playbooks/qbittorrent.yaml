@@ -1,5 +1,5 @@
 ---
-- name: Jellyfin
+- name: Qbittorrent
   hosts: all
 
   # Gather machine informations
@@ -9,36 +9,26 @@
   become: no
 
   vars:
-    app_name: Jellyfin
-    app_image: docker.io/jellyfin/jellyfin:10.8.13
-    app_internal_port: 8096
-    app_external_port: 8096
+    app_name: Qbittorrent
+    app_image: docker.io/linuxserver/qbittorrent:4.6.5
+    app_internal_port: 8080
+    app_external_port: 9080
     timezone: Europe/Paris
+    # for now we might need this in the config:
+    # WebUI\HostHeaderValidation=false 
 
   # Run suitable scripts
   tasks:
 
     - name: Create {{ app_name }} Data Directory
       file:
-        path: "{{data_path}}/{{app_name}}"
+        path: "{{ data_path }}/{{ app_name }}"
         state: directory
         mode: '0755'
 
-    - name: Create {{ app_name }} Config Directory
+    - name: Create Download Directory
       file:
-        path: "{{data_path}}/{{app_name}}/config"
-        state: directory
-        mode: '0755'
-
-    - name: Create {{ app_name }} TvSeries Directory
-      file:
-        path: "{{data_path}}/{{app_name}}/shows"
-        state: directory
-        mode: '0755'
-
-    - name: Create {{ app_name }} Movies Directory
-      file:
-        path: "{{data_path}}/{{app_name}}/movies"
+        path: "{{ data_path }}/downloads"
         state: directory
         mode: '0755'
 
@@ -54,17 +44,20 @@
         state: started
         recreate: yes
         ports:
-          - "{{app_external_port}}:{{app_internal_port}}"
+          - "{{ app_external_port }}:{{ app_internal_port }}"
+          - 6881:6881
+          - 6881:6881/udp
         expose:
           - "{{ app_external_port }}"
         volumes:
-          - "{{data_path}}/{{app_name}}/:/config"
-          - "{{data_path}}/{{app_name}}/shows:/data/shows"
-          - "{{data_path}}/{{app_name}}/movies:/data/movies"
+          - "{{ data_path }}/{{ app_name }}/:/config/qBittorrent"
+          - "{{ data_path }}/downloads/:/downloads"
         env:
           PUID: 1000
           PGID: 1000
           TZ: "{{ timezone }}"
+          WEBUI_PORT: "{{ app_internal_port }}"
+          TORRENTING_PORT: 6881
         #generate_systemd:
         #  path: "~/.config/systemd/user/"
         #  restart_policy: always

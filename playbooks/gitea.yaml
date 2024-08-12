@@ -10,10 +10,9 @@
 
   vars:
     app_name: Gitea
-    app_image: docker.io/gitea/gitea:1.22.1-rootless
+    app_image: docker.io/gitea/gitea:1.22.1
     app_internal_port: 3000
     app_external_port: 8080
-    timezone: Europe/Paris
 
   # Run suitable scripts
   tasks:
@@ -23,12 +22,6 @@
         path: "{{data_path}}/{{app_name}}"
         state: directory
         mode: '0755'
-
-    - name: Create {{ app_name }} Config Directory
-      file:
-        path: "{{data_path}}/{{app_name}}/config"
-        state: directory
-        mode: '0777'
 
     - name: Pull {{ app_name }} Image
       containers.podman.podman_image:
@@ -47,7 +40,7 @@
         expose:
           - "{{ app_external_port }}"
         volumes:
-          - "{{data_path}}/{{app_name}}:/data"
+          - "{{data_path}}/{{app_name}}:/data/gitea"
           - "/etc/timezone:/etc/timezone"
           - "/etc/localtime:/etc/localtime"
         #generate_systemd:
