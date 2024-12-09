@@ -45,3 +45,17 @@ Populate you fstab with something like this to automount without failure you sto
 ansible-playbook playbooks/setup.yaml -i inventory.yaml --ask-pass --ask-become-pass
 ```
 
+## Find your server address
+
+You can easily find your server address thanks to nmaps.
+First find your address as reference:
+
+```
+ip addr
+```
+
+then find your server with nmap:
+
+```
+nmap -sn 192.168.1.0/24
+```
