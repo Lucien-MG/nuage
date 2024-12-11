@@ -4,7 +4,7 @@ My self hosted cloud.
 
 ## How to use it:
 
-You need to create an inventor.yaml with you server address, method of connection and user.
+You need to create an inventory.yaml with you server address, method of connection and user.
 Then check that the config target the correct path for your data.
 
 You can be sure that everything is right by using:
@@ -13,23 +13,6 @@ You can be sure that everything is right by using:
 ansible-playbook playbooks/ping.yaml -i inventory.yaml --ask-pass
 ```
 
-## Example of inventory:
-
-```
----
-server:
-  hosts:
-    192.168.1.75:
-      ansible_connection: ssh
-      ansible_user: plop
-```
-
-## Example of config:
-
-```
----
-data_path: '/media/data'
-```
 
 ## Fstab
 
@@ -42,7 +25,24 @@ Populate you fstab with something like this to automount without failure you sto
 ## First setup
 
 ```
-ansible-playbook playbooks/setup.yaml -i inventory.yaml --ask-pass --ask-become-pass
+ansible-playbook playbooks/setup.yaml -i inventory.yaml --ask-pass --ask-become-pass -e @config.yaml
+```
+### Example of inventory:
+
+```
+---
+server:
+  hosts:
+    192.168.1.75:
+      ansible_connection: ssh
+      ansible_user: root
+```
+
+### Example of config:
+
+```
+---
+data_path: '/media/data'
 ```
 
 ## Find your server address
