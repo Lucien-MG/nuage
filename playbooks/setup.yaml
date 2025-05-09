@@ -31,11 +31,23 @@
       ansible.posix.authorized_key:
         user: "{{ server_user }}"
         state: present
-        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+        key: "{{ lookup('file', '~/.ssh/id_ed25519.pub') }}"
 
     # Avoid the user session to close
     - name: Enable linger for {{ server_user }} user
       ansible.builtin.command: "loginctl enable-linger {{ server_user }}"
+    
+    - name: Ensure the {{ server_user }} user has write permissions on the folder
+      ansible.builtin.file:
+        path: "{{ data_path }}"
+        mode: u+rw  # Adds write permission for all users (owner, group, others)
+        # OR you can be more specific using octal notation:
+        # mode: 0775 # Owner: rwx, Group: rwx, Others: rx
+        # mode: "u+rw,g+w" # Owner and group get read and write
+        owner: "{{ server_user }}"  # Optionally set the owner of the folder
+        recurse: no # Only apply to the folder itself, not its contents
+
 
     #- name: Create inventory for application deployement
-      #local_action: template src=../templates/setup.j2 dest=../inventory.yaml
+    #  template: src=templates/inventory.j2 dest=inventory.yaml
+    #  delegate_to: localhost

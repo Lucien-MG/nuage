@@ -1,0 +1,59 @@
+---
+- name: Homer
+  hosts: all
+
+  # Gather machine informations
+  gather_facts: no
+
+  # Enable root previlegies
+  become: no
+
+  vars:
+    app_name: homer
+    app_image: docker.io/b4bz/homer:v25.04.1
+    app_internal_port: 8080
+    app_external_port: 9080
+
+    app_data_path: "{{ global_app_data_path }}/{{ app_name }}"
+    app_timezone: "{{ global_timezone }}"
+
+  # Run suitable scripts
+  tasks:
+
+    - name: Create {{ app_name }} config directory
+      file:
+        path: "{{ app_data_path }}"
+        state: directory
+        mode: '0755'
+    
+    - name: Create config file for {{ app_name }}
+      ansible.builtin.template:
+        src: homer.j2
+        dest: "{{ app_data_path }}/config.yml"
+
+    - name: Pull {{ app_name }} image
+      containers.podman.podman_image:
+        name: "{{ app_image }}"
+        state: present
+
+    - name: Create {{ app_name }} Container
+      containers.podman.podman_container:
+        name: "{{ app_name }}"
+        image: "{{ app_image }}"
+        state: started
+        restart_policy: unless-stopped
+        recreate: yes
+        memory: 4mb
+        ports:
+          - "{{ app_external_port }}:{{ app_internal_port }}"
+        volumes:
+          - "{{ app_data_path }}/:/www/assets"
+        env:
+          PUID: 1000
+          PGID: 1000
+          TZ: "{{ app_timezone }}"
+    
+    - name: Systemd unit files for {{ app_name }} container
+      containers.podman.podman_generate_systemd:
+        name: "{{ app_name }}"
+        dest: "~/.config/systemd/user/"

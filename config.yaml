@@ -1,4 +1,7 @@
 ---
-data_path: '/media/data'
-server_user: 'server'
+global_server_user: 'server'
 
+global_data_path: '/media/data'
+global_app_data_path: '/media/data/.appdata'
+
+global_timezone: Europe/Paris
