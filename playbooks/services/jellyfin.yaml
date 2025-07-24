@@ -49,7 +49,7 @@
         image: "{{ app_image }}"
         state: started
         recreate: yes
-        memory: 256m
+        memory: 512m
         ports:
           - "{{ app_external_port }}:{{ app_internal_port }}"
         expose:
