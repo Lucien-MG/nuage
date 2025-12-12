@@ -3,27 +3,29 @@
   hosts: all
 
   # Gather machine informations
-  gather_facts: no
+  gather_facts: yes
 
   # Enable root previlegies
   become: no
 
   vars:
     app_name: Gitea
-    app_image: docker.io/gitea/gitea:1.22.1
+    app_image: docker.io/gitea/gitea:1.25.2-rootless
     app_internal_port: 3000
     app_external_port: 8080
 
+    app_data_path: "{{ global_app_data_path }}/{{ app_name }}"
+    app_timezone: "{{ global_timezone }}"
+
   # Run suitable scripts
   tasks:
-
-    - name: Create {{ app_name }} Data Directory
+    - name: Create {{ app_name }} data directory
       file:
-        path: "{{data_path}}/{{app_name}}"
+        path: "{{ app_data_path }}"
         state: directory
-        mode: '0755'
+        mode: "0755"
 
-    - name: Pull {{ app_name }} Image
+    - name: Pull {{ app_name }} image
       containers.podman.podman_image:
         name: "{{ app_image }}"
         state: present
@@ -40,13 +42,13 @@
         expose:
           - "{{ app_external_port }}"
         volumes:
-          - "{{data_path}}/{{app_name}}:/data/gitea"
-          - "/etc/timezone:/etc/timezone"
-          - "/etc/localtime:/etc/localtime"
-        #generate_systemd:
-        #  path: "~/.config/systemd/user/"
-        #  restart_policy: always
-        #  time: 120
-        #  names: true
-        #  container_prefix: container
+          - "{{app_data_path}}:/data/gitea"
+        env:
+          PUID: "{{ ansible_facts['user_uid'] }}"
+          PGID: "{{ ansible_facts['user_gid'] }}"
+          TZ: "{{ app_timezone }}"
 
+    - name: Systemd unit files for {{ app_name }} container
+      containers.podman.podman_generate_systemd:
+        name: "{{ app_name }}"
+        dest: "~/.config/systemd/user/"

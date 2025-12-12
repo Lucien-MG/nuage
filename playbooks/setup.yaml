@@ -3,17 +3,20 @@
   hosts: all
 
   # Gather machine informations
-  gather_facts: no
+  gather_facts: false
 
   # Enable root previlegies
-  become: yes
+  become: true
+
+  vars:
+    server_user: "{{ test | default(global_server_user) }}"
+    data_path: "{{ test | default(global_data_path) }}"
 
   # Run suitable scripts
   tasks:
-
     - name: Install Container Manager
       ansible.builtin.package:
-        name: 
+        name:
           - crun # Container runtime
           - podman # Container manager
           - slirp4netns # Allow user-mode networking for unprivileged network namespaces
@@ -36,15 +39,15 @@
     # Avoid the user session to close
     - name: Enable linger for {{ server_user }} user
       ansible.builtin.command: "loginctl enable-linger {{ server_user }}"
-    
+
     - name: Ensure the {{ server_user }} user has write permissions on the folder
       ansible.builtin.file:
         path: "{{ data_path }}"
-        mode: u+rw  # Adds write permission for all users (owner, group, others)
+        mode: u+rw # Adds write permission for all users (owner, group, others)
         # OR you can be more specific using octal notation:
         # mode: 0775 # Owner: rwx, Group: rwx, Others: rx
         # mode: "u+rw,g+w" # Owner and group get read and write
-        owner: "{{ server_user }}"  # Optionally set the owner of the folder
+        owner: "{{ server_user }}" # Optionally set the owner of the folder
         recurse: no # Only apply to the folder itself, not its contents
 
 
